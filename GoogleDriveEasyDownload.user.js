@@ -72,8 +72,25 @@ style.textContent = "\
 	
 function simulate(element, eventName)
 {
+    var defaultOptions = {
+        pointerX: 0,
+        pointerY: 0,
+        button: 0,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true
+    }
+    
     var options = extend(defaultOptions, arguments[2] || {});
     var oEvent, eventType = null;
+    
+    var eventMatchers = {
+        'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
+        'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
+    }
 
     for (var name in eventMatchers)
     {
@@ -116,39 +133,23 @@ function extend(destination, source) {
     return destination;
 }
 
-var eventMatchers = {
-    'HTMLEvents': /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
-    'MouseEvents': /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/
-}
-
-var defaultOptions = {
-    pointerX: 0,
-    pointerY: 0,
-    button: 0,
-    ctrlKey: false,
-    altKey: false,
-    shiftKey: false,
-    metaKey: false,
-    bubbles: true,
-    cancelable: true
-}
-
-var rightClickOptions = {
-    pointerX: 0,
-    pointerY: 0,
-    button: 2,
-    which: 3,
-    ctrlKey: false,
-    altKey: false,
-    shiftKey: false,
-    metaKey: false,
-    bubbles: true,
-    cancelable: true
-    //'view': window
-}
 
 function simulateRightClick(element)
 {
+    var rightClickOptions = {
+        pointerX: 0,
+        pointerY: 0,
+        button: 2,
+        which: 3,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true
+        //'view': window
+    }
+    
     if (document.createEvent)
     {    	        
         var rmbEvent = new MouseEvent('click', rightClickOptions);
@@ -167,6 +168,18 @@ function simulateRightClick(element)
 
 function simulateContextMenu(element)
 {
+    var defaultOptions = {
+        pointerX: 0,
+        pointerY: 0,
+        button: 0,
+        ctrlKey: false,
+        altKey: false,
+        shiftKey: false,
+        metaKey: false,
+        bubbles: true,
+        cancelable: true
+    }
+    
 	var options = extend(defaultOptions, arguments[2] || {});
     var oEvent = null;
 	eventType = 'HTMLEvents';
@@ -239,9 +252,9 @@ function prepareTable() {
 	filesTableElt.onchange = prepareTable;
 }
 
-var downloadCssSource = "Caca dans ta bouche";
-
 function showCss() {
+    var downloadCssSource = "Caca dans ta bouche";
+
 	console.log(downloadCssSource);
 }
 
@@ -249,28 +262,45 @@ prepareTable();
 
 console.log("downloadCssSource");
 
+var websiteStorage = unsafeWindow;
 
-unsafeWindow.simulate = simulate;
-unsafeWindow.extend = extend;
-unsafeWindow.eventMatchers = eventMatchers;
-unsafeWindow.defaultOptions = defaultOptions;
-unsafeWindow.rightClickOptions = rightClickOptions;
-unsafeWindow.simulateRightClick = simulateRightClick;
-unsafeWindow.simulateContextMenu = simulateContextMenu;
-unsafeWindow.downloadFile = downloadFile;
-unsafeWindow.noDownload = noDownload;
-unsafeWindow.prepareTable = prepareTable;
-unsafeWindow.downloadCssSource = downloadCssSource;
-unsafeWindow.showCss = showCss;
-
-
-// var mainElt = document.getElementsByClassName("doclist-tbody")[0].firstElementChild;
-// simulateContextMenu(mainElt);
-// 
-// var el = document.body.querySelector("div.detroit-contextmenu[tabindex='0']");
-// 
-// simulate(el.childNodes[13], "mousedown");
-// simulate(el.childNodes[13], "mouseup");
-// simulate(el.childNodes[13], "click");
-//simulateRightClick(document.getElementsByClassName("doclist-tbody")[0].firstElementChild);
-//simulate(document.body, "click");
+if (undefined == unsafeWindow) {
+    websiteStorage.simulate = simulate;
+    websiteStorage.extend = extend;
+    websiteStorage.simulateRightClick = simulateRightClick;
+    websiteStorage.simulateContextMenu = simulateContextMenu;
+    websiteStorage.downloadFile = downloadFile;
+    websiteStorage.noDownload = noDownload;
+    websiteStorage.prepareTable = prepareTable;
+    websiteStorage.showCss = showCss;
+}
+else {
+    function contentEval(source) {
+      // Check for function input.
+      if ('function' == typeof source) {
+        // Execute this function with no arguments, by adding parentheses.
+        // One set around the function, required for valid syntax, and a
+        // second empty set calls the surrounded function.
+        source = '(' + source + ')();'
+      }
+    
+      // Create a script node holding this  source code.
+      var script = document.createElement('script');
+      script.setAttribute("type", "application/javascript");
+      script.textContent = source;
+    
+      // Insert the script node into the page, so it will run, and immediately
+      // remove it to clean up.
+      document.body.appendChild(script);
+      document.body.removeChild(script);
+    }
+    
+    contentEval('' + simulate);
+    contentEval('' + extend);
+    contentEval('' + simulateRightClick);
+    contentEval('' + simulateContextMenu);
+    contentEval('' + downloadFile);
+    contentEval('' + noDownload);
+    contentEval('' + prepareTable);
+    contentEval('' + showCss);
+}

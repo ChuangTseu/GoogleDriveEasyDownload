@@ -13,6 +13,5 @@ INSTALL
 
 WARNING:
 
-- Currently doesn't work on Chrome
 - Ugly
 - Disappears after a short period of time
